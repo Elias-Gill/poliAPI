@@ -1,0 +1,73 @@
+basePath: /
+info:
+  contact:
+    email: eliasgill42@gmail.com
+    name: PoliAPI
+  description: API sencilla para manejar los horarios de la facultad
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Api para posible politerminal web
+  version: "1.0"
+paths:
+  /login:
+    get:
+      consumes:
+      - application/json
+      description: Iniciar sesion en una cuenta de usuario y generar un token
+      parameters:
+      - description: Nombre del usuario
+        in: query
+        maxLength: 30
+        minLength: 5
+        name: name
+        required: true
+        type: string
+      - description: La contrasena
+        in: query
+        maxLength: 30
+        minLength: 5
+        name: paswd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Parametros invalidos
+          schema:
+            type: query
+      summary: Iniciar Sesion
+      tags:
+      - users
+  /register:
+    put:
+      consumes:
+      - application/json
+      description: Crear una nueva cuenta de usuario
+      parameters:
+      - description: Nombre del usuario
+        in: query
+        maxLength: 30
+        minLength: 5
+        name: name
+        required: true
+        type: string
+      - description: La contrasena
+        in: query
+        maxLength: 30
+        minLength: 5
+        name: paswd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Parametros invalidos
+          schema:
+            type: string
+      summary: Crear cuenta
+      tags:
+      - users
+swagger: "2.0"
