@@ -1,15 +1,14 @@
-package server
+package storage
 
-import (
-    parser "github.com/elias-gill/poliapi-parser"
-)
+import "github.com/elias-gill/poliapi/types"
 
 // Lista los 5 archivos excel mas recientes en la base de datos
-func GetAvailableExeclFiles() ([]*ExcelInfo, error) {
-	return nil, nil
+func GetAvailableExeclFiles() ([]*types.ExcelInfo, error) {
+    return nil, nil
 }
 
 // lista las materias disponibles dentro de un archivo excel
 func GetSubjectsFromExcel(fileId int) ([]parser.Materia, error) {
-	return nil, nil
+    return nil, nil
 }
+
