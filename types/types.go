@@ -23,7 +23,7 @@ type User struct {
 }
 
 // valida que todos los campos sean correctos
-func (u *User) ValidRegistration() error {
+func (u *User) ValidateParameters() error {
     if u.Email == nil || u.Pasw == nil || u.Name == nil {
         return fmt.Errorf("Los parametros no pueden ser nulos")
     }

@@ -23,7 +23,7 @@ func NewPostgreStorage() *postgresStorage {
 }
 
 // get the user data of a given id
-func (s *postgresStorage) GetById(user int) (*types.User, error) {
+func (s *postgresStorage) GetById(user string) (*types.User, error) {
 	var data types.User
 	err := s.conn.Select(
 		&data,
