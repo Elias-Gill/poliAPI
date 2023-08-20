@@ -19,7 +19,8 @@ func writeJsonResponse(w http.ResponseWriter, status int, msg interface{}) {
 }
 
 // To generate a new http error and a new log message
-func generateHttpError(msg string, logMsg string) types.HttpError {
-    log.Println(logMsg)
+func generateHttpError(w http.ResponseWriter, status int, err error, msg string) types.HttpError {
+    log.Println(err.Error())
+    writeJsonResponse(w, status, msg)
     return types.HttpError{Error: msg}
 }

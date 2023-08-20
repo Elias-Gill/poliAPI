@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/elias-gill/poliapi/storage"
@@ -45,9 +46,9 @@ func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	user, pasw, ok := r.BasicAuth()
 	if !ok {
 		// error de autenticacion
-		logMsg := "Error al parsear credenciales " + user + " " + pasw
+		logMsg := fmt.Errorf("Error al parsear credenciales " + user + " " + pasw)
 		msg := "Formato de credenciales invalido"
-		writeJsonResponse(w, 400, generateHttpError(msg, logMsg))
+        generateHttpError(w, 400, logMsg, msg)
 		return
 	}
 
@@ -55,7 +56,7 @@ func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	token, err := u.login(user, pasw)
 	if err != nil {
 		msg := "Usuario o contrasena invalidos"
-		writeJsonResponse(w, 401, generateHttpError(msg, err.Error()))
+		generateHttpError(w, 401, err, msg)
 		return
 	}
 
@@ -79,16 +80,14 @@ func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var body types.User
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		logMsg := "Error de formateo: " + err.Error()
 		msg := "No es posible parsear la request, formato invalido"
-		writeJsonResponse(w, 400, generateHttpError(msg, logMsg))
+		generateHttpError(w, 400, err, msg)
 		return
 	}
 
 	// crear el nuevo usario en la db
 	if err := u.RegisterNewUser(body); err != nil {
-		logMsg := "Error al crear nuevo usuario: " + err.Error()
-		writeJsonResponse(w, 400, generateHttpError(err.Error(), logMsg))
+        generateHttpError(w, 400, err, err.Error())
 		return
 	}
 	writeJsonResponse(w, 200, nil)
@@ -113,9 +112,6 @@ func (u UsersHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// hacer lo que se tenga que hacer
 	err := u.updateUserData(userName, body)
 	if err != nil {
-		logMsg := "No se pudo modificar usuario" + err.Error()
-		msg := "No se puede realizar la operacion"
-		writeJsonResponse(w, 400, generateHttpError(msg, logMsg))
 		return
 	}
 	writeJsonResponse(w, 200, nil)
@@ -133,7 +129,7 @@ func (u UsersHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	user, _, _ := r.BasicAuth()
 	err := u.storer.Delete(user)
 	if err != nil {
-		writeJsonResponse(w, 403, generateHttpError(defaultHttpError, err.Error()))
+		generateHttpError(w, 403, err, defaultHttpError)
 		return
 	}
 	writeJsonResponse(w, 200, nil)
