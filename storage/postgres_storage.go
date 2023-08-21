@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/elias-gill/poliapi/types"
+	_ "github.com/lib/pq"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -90,7 +91,7 @@ func connectToPostgres() *sqlx.DB {
 	pg_dsn := os.Getenv("PG_DSN")
 
 	//Use sql.Open to initialize a new sql.DB object
-	db, err := sqlx.Open("pgx", pg_dsn)
+	db, err := sqlx.Open("postgres", pg_dsn)
 	if err != nil {
 		log.Fatal("No se pudo conectar la DB: ", err.Error())
 	}
@@ -101,5 +102,6 @@ func connectToPostgres() *sqlx.DB {
 		log.Fatal("No se pudo conectar con la DB: ", pingErr.Error())
 	}
 
+    log.Println("Conectado a DB postgres")
 	return db
 }

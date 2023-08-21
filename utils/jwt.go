@@ -48,11 +48,12 @@ func CheckJWT(reciebedToken string) (string, error) {
 }
 
 // TODO: revisar el path a excluir
+// TODO: pasar a writeJson() y generatehttpError()
 // jwt midleware to protect authentication
 func JwtMidleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// no proteger "/login/" porque no necesita token para crear o iniciar sesion
-		if r.URL.Path == "/login/" {
+		if strings.Index(r.URL.Path, "login") != -1 {
 			next.ServeHTTP(w, r)
 			return
 		}

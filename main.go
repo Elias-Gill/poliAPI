@@ -40,9 +40,9 @@ func main() {
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 
 	// routes
-	r.Route("/user", 
-        api.NewUsersHandler(storage.NewPostgreStorage()).HandleUsers,
-        )
+	r.Route("/user",
+		api.NewUsersHandler(storage.NewPostgreStorage()).HandleUsers,
+	)
 
 	// configure server to run
 	srv := &http.Server{
