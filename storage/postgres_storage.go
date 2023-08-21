@@ -46,23 +46,26 @@ func (s *postgresStorage) Delete(user string) error {
 	return err
 }
 
-func (s *postgresStorage) Update(section string, user string, data any) error {
-	_, err := s.conn.Query(
-		"update $1 u set $2 = $3 where u.nombre = $4",
-		s.table, section, data, user,
+func (s *postgresStorage) Update(id string, user *types.User) error {
+	query := fmt.Sprintf(
+		`update %s u set 
+        email=:email, nombre=:nombre, password=:password 
+        where u.nombre = %s`,
+		s.table, id,
 	)
+
+	_, err := s.conn.NamedExec(query, user)
 	return err
 }
 
-func (s *postgresStorage) Insert(u types.User) error {
-	_, err := s.conn.NamedExec(
-		"insert into "+s.table+" (nombre, password, email) values (:nombre, :password, :email)",
-		u,
+func (s *postgresStorage) Insert(u *types.User) error {
+	query := fmt.Sprintf(
+		`insert into %s (nombre, password, email) 
+        values (:nombre, :password, :email)`,
+		s.table,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := s.conn.NamedExec(query, u)
+	return err
 }
 
 func (db *postgresStorage) userNameIsNotRepeated(name string) error {

@@ -48,7 +48,7 @@ func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		// error de autenticacion
 		logMsg := fmt.Errorf("Error al parsear credenciales " + user + " " + pasw)
 		msg := "Formato de credenciales invalido"
-        generateHttpError(w, 400, logMsg, msg)
+		generateHttpError(w, 400, logMsg, msg)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Succes		200
 // @Router		/ [post]
 func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var body types.User
+	var body types.NewUserRequest
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		msg := "No es posible parsear la request, formato invalido"
@@ -85,9 +85,16 @@ func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// crear el nuevo usario en la db
-	if err := u.RegisterNewUser(body); err != nil {
-        generateHttpError(w, 400, err, err.Error())
+	// crear el nuevo usario
+	user, err := types.NewUserFromRequest(body)
+	if err != nil {
+		generateHttpError(w, 400, err, err.Error())
+		return
+	}
+
+	// insertar en la db
+	if err := u.storer.Insert(user); err != nil {
+		generateHttpError(w, 400, err, err.Error())
 		return
 	}
 	writeJsonResponse(w, 200, nil)
@@ -107,11 +114,18 @@ func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 func (u UsersHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// extraer los datos de la request
 	userName, _, _ := r.BasicAuth()
-	var body types.User
-	json.NewDecoder(r.Body).Decode(&body)
-	// hacer lo que se tenga que hacer
-	err := u.updateUserData(userName, body)
+	var req types.NewUserRequest
+	json.NewDecoder(r.Body).Decode(&req)
+	user, err := types.NewUserFromRequest(req)
 	if err != nil {
+		generateHttpError(w, 400, err, err.Error())
+		return
+	}
+
+	// actualizar datos
+	err = u.storer.Update(userName, user)
+	if err != nil {
+		generateHttpError(w, 400, err, err.Error())
 		return
 	}
 	writeJsonResponse(w, 200, nil)
@@ -137,57 +151,17 @@ func (u UsersHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // Compares credentials and then returns a new JWT token for the user
 func (ud UsersHandler) login(user string, pasw string) (*string, error) {
-	// fetch for user data
-	data, err := ud.storer.GetById(user)
-	if err != nil {
-		return nil, err
-	}
-
-	// compare pasw and encripted pasw
-	if err = utils.ComparePasw(pasw, *data.Pasw); err != nil {
-		return nil, err
-	}
-
-	// returns a new JWT token
-	return utils.GenerateJWT(string(user))
-}
-
-// TODO: pensar que hacer con esto
-func (ud *UsersHandler) updateUserData(name string, new types.User) error {
-    if new.Name != nil {
-        // TODO: generar update con la funcion "UpdateSection"
-    }
-    if new.Email != nil {
-        // TODO: generar update con la funcion "UpdateSection"
-    }
-    if new.Pasw != nil {
-        _, err := utils.EncriptPasw(*new.Pasw)
-        if err != nil {
-            return err
-        }
-        // TODO: generar update con la funcion "UpdateSection"
-    }
-    return nil
-}
-
-// Inserts a new user into the database. Returns an error if the username is unavailable
-func (ud *UsersHandler) RegisterNewUser(u types.User) error {
-    err := u.ValidateParameters()
+    // fetch for user data
+    data, err := ud.storer.GetById(user)
     if err != nil {
-        return err
+        return nil, err
     }
 
-    // encriptar la contrasena
-    hashedPwd, err := utils.EncriptPasw(*u.Pasw)
-    if err != nil {
-        return err
+    // compare pasw and encripted pasw
+    if err = utils.ComparePasw(pasw, *data.Pasw); err != nil {
+        return nil, err
     }
-    u.Pasw = &hashedPwd
 
-    // insertar el nuevo usuario
-    err = ud.storer.Insert(u)
-    if err != nil {
-        return err
-    }
-    return nil
+    // returns a new JWT token
+    return utils.GenerateJWT(string(user))
 }
