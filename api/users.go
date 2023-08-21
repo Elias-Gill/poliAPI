@@ -25,7 +25,8 @@ func NewUsersHandler(store storage.UserStorer) UsersHandler {
 
 // Returns a new handleUsers for the /users path
 func (u UsersHandler) HandleUsers(r chi.Router) {
-	r.Get("/login", u.LoginUser)
+	r.Get("/login", u.AuthenticateUser)
+    r.Get("/", u.GetUserInfo)
 	r.Delete("/", u.DeleteUser)
 	r.Put("/", u.RegisterUser)
 	r.Post("/", u.UpdateUser)
@@ -42,7 +43,7 @@ func (u UsersHandler) HandleUsers(r chi.Router) {
 // @Failure		403 query string "Usuario o contasena invalidos"
 // @Succes		200 query Token "JWT para autenticacion"
 // @Router		/ [get]
-func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+func (u UsersHandler) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	user, pasw, ok := r.BasicAuth()
 	if !ok {
 		// error de autenticacion
@@ -59,10 +60,7 @@ func (u UsersHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		generateHttpError(w, 401, err, msg)
 		return
 	}
-
-	// mandar el jwt
 	writeJsonResponse(w, 200, &types.JWTResponse{Token: *token})
-	return
 }
 
 // @Summary		Crear usuario
@@ -114,16 +112,15 @@ func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 func (u UsersHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// extraer los datos de la request
 	userName, _, _ := r.BasicAuth()
-	var req types.NewUserRequest
-	json.NewDecoder(r.Body).Decode(&req)
-	user, err := types.NewUserFromRequest(req)
+	var req types.User
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		generateHttpError(w, 400, err, err.Error())
+		generateHttpError(w, 400, err, "Cannot parse request. Format error")
 		return
 	}
 
 	// actualizar datos
-	err = u.storer.Update(userName, user)
+	err = u.storer.Update(userName, &req)
 	if err != nil {
 		generateHttpError(w, 400, err, err.Error())
 		return
@@ -149,19 +146,34 @@ func (u UsersHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	writeJsonResponse(w, 200, nil)
 }
 
-// Compares credentials and then returns a new JWT token for the user
-func (ud UsersHandler) login(user string, pasw string) (*string, error) {
-    // fetch for user data
-    data, err := ud.storer.GetById(user)
+func (u UsersHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
+    id, _, _ := r.BasicAuth()
+    user, err := u.storer.GetById(id)
     if err != nil {
-        return nil, err
+        msg := "No se pudo encontrar informacion. Error del servidor"
+        generateHttpError(w, http.StatusInternalServerError, err, msg)
+        return
     }
 
-    // compare pasw and encripted pasw
-    if err = utils.ComparePasw(pasw, *data.Pasw); err != nil {
-        return nil, err
-    }
+    writeJsonResponse(w, 200, types.UserGetResponse{
+        Email: user.Email,
+        Name: user.Name,
+    })
+}
 
-    // returns a new JWT token
-    return utils.GenerateJWT(string(user))
+// Compares credentials and then returns a new JWT token for the user
+func (u UsersHandler) login(user string, pasw string) (*string, error) {
+	// fetch for user data
+	data, err := u.storer.GetById(user)
+	if err != nil {
+		return nil, err
+	}
+
+	// compare pasw and encripted pasw
+	if err = utils.ComparePasw(pasw, *data.Pasw); err != nil {
+		return nil, err
+	}
+
+	// returns a new JWT token
+	return utils.GenerateJWT(string(user))
 }
