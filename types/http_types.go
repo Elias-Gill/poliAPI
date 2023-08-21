@@ -7,9 +7,9 @@ type ExcelInfo struct {
 }
 
 type JWTResponse struct {
-    Token string `json:"token"`
+	Token string `json:"token"`
 }
 
 type HttpError struct {
-    Error string `json:"error"`
+	Error string `json:"error"`
 }

@@ -15,8 +15,8 @@ type UpdateUserRequest struct {
 }
 
 type UserGetResponse struct {
-    Name  *string `json:"userName"`
-    Email *string `json:"email"`
+	Name  *string `json:"userName"`
+	Email *string `json:"email"`
 }
 
 type User struct {

@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/elias-gill/poliapi/types"
-	_ "github.com/lib/pq"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type postgresStorage struct {
@@ -102,6 +102,6 @@ func connectToPostgres() *sqlx.DB {
 		log.Fatal("No se pudo conectar con la DB: ", pingErr.Error())
 	}
 
-    log.Println("Conectado a DB postgres")
+	log.Println("Conectado a DB postgres")
 	return db
 }

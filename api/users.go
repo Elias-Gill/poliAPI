@@ -26,7 +26,7 @@ func NewUsersHandler(store storage.UserStorer) UsersHandler {
 // Returns a new handleUsers for the /users path
 func (u UsersHandler) HandleUsers(r chi.Router) {
 	r.Get("/login", u.AuthenticateUser)
-    r.Get("/", u.GetUserInfo)
+	r.Get("/", u.GetUserInfo)
 	r.Delete("/", u.DeleteUser)
 	r.Put("/", u.RegisterUser)
 	r.Post("/", u.UpdateUser)
@@ -147,18 +147,18 @@ func (u UsersHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u UsersHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
-    id, _, _ := r.BasicAuth()
-    user, err := u.storer.GetById(id)
-    if err != nil {
-        msg := "No se pudo encontrar informacion. Error del servidor"
-        generateHttpError(w, http.StatusInternalServerError, err, msg)
-        return
-    }
+	id, _, _ := r.BasicAuth()
+	user, err := u.storer.GetById(id)
+	if err != nil {
+		msg := "No se pudo encontrar informacion. Error del servidor"
+		generateHttpError(w, http.StatusInternalServerError, err, msg)
+		return
+	}
 
-    writeJsonResponse(w, 200, types.UserGetResponse{
-        Email: user.Email,
-        Name: user.Name,
-    })
+	writeJsonResponse(w, 200, types.UserGetResponse{
+		Email: user.Email,
+		Name:  user.Name,
+	})
 }
 
 // Compares credentials and then returns a new JWT token for the user
