@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-    "github.com/charmbracelet/log"
-	"github.com/elias-gill/poliapi/src/routers"
-	"github.com/elias-gill/poliapi/src/utils"
+	"github.com/charmbracelet/log"
+	"github.com/elias-gill/poliapi/api"
+	"github.com/elias-gill/poliapi/storage"
+	"github.com/elias-gill/poliapi/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/joho/godotenv/autoload"
@@ -39,7 +40,9 @@ func main() {
 	r.Mount("/swagger", httpSwagger.WrapHandler)
 
 	// routes
-	r.Route("/user", routers.UsersHandler)
+	r.Route("/user",
+		api.NewUsersHandler(storage.NewPostgreStorage()).HandleUsers,
+	)
 
 	// configure server to run
 	srv := &http.Server{

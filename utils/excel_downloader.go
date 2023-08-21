@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/tls"
+	parser "github.com/elias-gill/poliapi-parser"
 	"io"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-    parser "github.com/elias-gill/poliapi-parser"
 )
 
 const (
@@ -67,10 +67,12 @@ func searchSheets() []string {
 	if err != nil {
 		panic(err)
 	}
+
 	file, err := os.Open(os.Getenv("CACHED_SHEETS") + "disponibles")
 	if err != nil {
 		panic(err)
 	}
+
 	r, _ := io.ReadAll(file)
 	return strings.Split(string(r), "\n")
 }
