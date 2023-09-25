@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -47,8 +46,6 @@ func CheckJWT(reciebedToken string) (string, error) {
 	return claims["userName"].(string), nil
 }
 
-// TODO: revisar el path a excluir
-// TODO: pasar a writeJson() y generatehttpError()
 // jwt midleware to protect authentication
 func JwtMidleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -66,17 +63,15 @@ func JwtMidleware(next http.Handler) http.Handler {
 		// extraer el token
 		token, err := ExtractToken(r)
 		if err != nil {
-			log.Printf("Cannot extract token: %s\n", err.Error())
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Malformed Token"))
+            e :=  fmt.Errorf("Cannot extract token: %s\n", err.Error())
+            GenerateHttpError(w, http.StatusUnauthorized, e, "malformed token")
 			return
 		}
 		// comprobar el token
 		user, err := CheckJWT(token)
 		if err != nil {
-			log.Printf("Token authentication. Token invalid (%s): %s\n", token, err.Error())
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Invalid token or bad auth header format"))
+			e := fmt.Errorf("Token authentication. Token invalid (%s): %s\n", token, err.Error())
+            GenerateHttpError(w, http.StatusUnauthorized, e, "Invalid token or bad auth header format")
 			return
 		}
 		// guardar el username extraido y pasar al siguiente midleware

@@ -49,7 +49,7 @@ func (u UsersHandler) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 		// error de autenticacion
 		logMsg := fmt.Errorf("Error al parsear credenciales " + user + " " + pasw)
 		msg := "Formato de credenciales invalido"
-		generateHttpError(w, 400, logMsg, msg)
+		utils.GenerateHttpError(w, 400, logMsg, msg)
 		return
 	}
 
@@ -57,10 +57,10 @@ func (u UsersHandler) AuthenticateUser(w http.ResponseWriter, r *http.Request) {
 	token, err := u.login(user, pasw)
 	if err != nil {
 		msg := "Usuario o contrasena invalidos"
-		generateHttpError(w, 401, err, msg)
+		utils.GenerateHttpError(w, 401, err, msg)
 		return
 	}
-	writeJsonResponse(w, 200, &types.JWTResponse{Token: *token})
+	utils.WriteJsonResponse(w, 200, &types.JWTResponse{Token: *token})
 }
 
 // @Summary		Crear usuario
@@ -79,23 +79,23 @@ func (u UsersHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		msg := "No es posible parsear la request, formato invalido"
-		generateHttpError(w, 400, err, msg)
+		utils.GenerateHttpError(w, 400, err, msg)
 		return
 	}
 
 	// crear el nuevo usario
 	user, err := types.NewUserFromRequest(body)
 	if err != nil {
-		generateHttpError(w, 400, err, err.Error())
+		utils.GenerateHttpError(w, 400, err, err.Error())
 		return
 	}
 
 	// insertar en la db
 	if err := u.storer.Insert(user); err != nil {
-		generateHttpError(w, 400, err, err.Error())
+		utils.GenerateHttpError(w, 400, err, err.Error())
 		return
 	}
-	writeJsonResponse(w, 200, nil)
+	utils.WriteJsonResponse(w, 200, nil)
 }
 
 // @Summary		Modificar usuario
@@ -115,17 +115,17 @@ func (u UsersHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var req types.User
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		generateHttpError(w, 400, err, "Cannot parse request. Format error")
+		utils.GenerateHttpError(w, 400, err, "Cannot parse request. Format error")
 		return
 	}
 
 	// actualizar datos
 	err = u.storer.Update(userName, &req)
 	if err != nil {
-		generateHttpError(w, 400, err, err.Error())
+		utils.GenerateHttpError(w, 400, err, err.Error())
 		return
 	}
-	writeJsonResponse(w, 200, nil)
+	utils.WriteJsonResponse(w, 200, nil)
 }
 
 // @Summary		Eliminar un usuario
@@ -140,10 +140,10 @@ func (u UsersHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	user, _, _ := r.BasicAuth()
 	err := u.storer.Delete(user)
 	if err != nil {
-		generateHttpError(w, 403, err, defaultHttpError)
+		utils.GenerateHttpError(w, 403, err, defaultHttpError)
 		return
 	}
-	writeJsonResponse(w, 200, nil)
+	utils.WriteJsonResponse(w, 200, nil)
 }
 
 func (u UsersHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -151,11 +151,11 @@ func (u UsersHandler) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	user, err := u.storer.GetById(id)
 	if err != nil {
 		msg := "No se pudo encontrar informacion. Error del servidor"
-		generateHttpError(w, http.StatusInternalServerError, err, msg)
+		utils.GenerateHttpError(w, http.StatusInternalServerError, err, msg)
 		return
 	}
 
-	writeJsonResponse(w, 200, types.UserGetResponse{
+	utils.WriteJsonResponse(w, 200, types.UserGetResponse{
 		Email: user.Email,
 		Name:  user.Name,
 	})
